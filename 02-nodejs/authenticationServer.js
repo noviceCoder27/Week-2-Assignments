@@ -96,7 +96,7 @@ function getUsers(req,res) {
     res.status(401).send("Unauthorized");
   } else {
     console.log(userArr);
-    res.status(200).send({users: userArr});
+    res.status(200).send({users: userArr6l});
   }
 }
 
