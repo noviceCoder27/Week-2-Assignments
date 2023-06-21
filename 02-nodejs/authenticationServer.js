@@ -34,4 +34,77 @@ const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+const {v4: uuidv4} = require('uuid');
+const users = [];
+
+
+function signUpUser(req,res) {
+  const userName = req.body.username;
+  for(user of users) {
+    if(user.username === userName) {
+      res.status(400).send("Username already exists");
+      return;
+    }
+  }
+  const password = req.body.password;
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+  const email = req.body.email;
+  const user = {
+    id: uuidv4(),
+    email,
+    password,
+    firstname: firstName,
+    lastname: lastName
+  }
+  users.push(user);
+  res.status(201).send("Signup successful");
+}
+
+function loginUser(req,res) {
+  const email = req.body.email;
+  const password = req.body.password;
+  let doesExist = false;
+  let userDetails = {};
+  for(user of users) {
+    if(user.email === email && user.password === password) {
+      doesExist = true;
+      userDetails = {email: user.email,firstName: user.firstname, lastName: user.lastname};
+      break;
+    }
+  }
+
+  if(doesExist) {
+    res.status(200).send(userDetails);
+  } else {
+    res.status(400).send("Invalid credentials");
+  }
+}
+
+function getUsers(req,res) {
+  const {email,password} = req.headers;
+  let isAuthorized = false;
+  let userArr = [];
+  for(user of users) {
+    if(user.email === email && user.password === password) {
+      isAuthorized = true;
+      userArr.push(user);
+      break;
+    }
+  }
+  if(!isAuthorized) {
+    res.status(401).send("Unauthorized");
+  } else {
+    console.log(userArr);
+    res.status(200).send({users: userArr});
+  }
+}
+
+
+app.use(express.json());
+app.post('/signup',signUpUser);
+app.post('/login',loginUser);
+app.get('/data',getUsers);
+
+
 module.exports = app;
