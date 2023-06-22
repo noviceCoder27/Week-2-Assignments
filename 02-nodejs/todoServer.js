@@ -40,17 +40,40 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 
 const app = express();
 
-const todos = [];
-function getTodos(req,res) {
-  return res.status(200).send(todos);
+async function fetchTodos() {
+  try {
+      const data = await fs.promises.readFile('./files/todos.json','utf-8');
+      const todosObj = JSON.parse(data);
+      const todos = todosObj.todos;
+      return todos
+  } catch(err) {
+      if(err) throw Error("Error reading file");
+  }
 }
 
-function getTodo(req,res) {
+async function updateJSON(todos) {
+  const todosJson = {todos}
+  const data = JSON.stringify(todosJson);
+  try {
+    await fs.promises.writeFile('./files/todos.json',data,'utf-8');
+  }catch(err) {
+    if(err) throw Error("Error in writing in file");
+  }
+}
+
+async function getTodos(req,res) {
+  const todos = await fetchTodos();
+  res.status(200).send(todos);
+}
+
+async function getTodo(req,res) {
+  const todos = await fetchTodos();
   const id = req.params.id;
   let doesExist = false;
   let reqdTodo;
@@ -68,7 +91,8 @@ function getTodo(req,res) {
   }
 }
 
-function addTodo(req,res) {
+async function addTodo(req,res) {
+  const todos = await fetchTodos();
   const id = uuidv4();
   const todo = {
     id,
@@ -77,23 +101,27 @@ function addTodo(req,res) {
     description: req.body.description
   }
   todos.push(todo);
+  await updateJSON(todos);
   res.status(201).send(todo);
 }
 
-function updateTodo(req,res) {
+async function updateTodo(req,res) {
+  const todos = await fetchTodos();
   const id = req.params.id;
   for(todo of todos) {
     if(todo.id === id) {
       todo.title = req.body.title;
       todo.description = req.body.description;
       todo.completed =req.body.completed;
+      await updateJSON(todos);
       res.status(200).send(todo);
     }
   }
 
 }
 
-function deleteTodo(req,res) {
+async function deleteTodo(req,res) {
+  const todos = await fetchTodos();
   const id = req.params.id;
   let getIndex;
   for(todo of todos) {
@@ -105,6 +133,7 @@ function deleteTodo(req,res) {
 
   if(typeof getIndex !== undefined) {
     todos.splice(getIndex,1);
+    await updateJSON(todos);
     res.status(200).send(todos);
   }
 }
