@@ -39,24 +39,24 @@ const users = [];
 
 
 function signUpUser(req,res) {
-  const userName = req.body.username;
+  const email = req.body.email;
   for(user of users) {
-    if(user.username === userName) {
-      res.status(400).send("Username already exists");
-      return;
+    if(user.email === email) {
+      return res.status(400).send("User already exists");
     }
   }
-  const password = req.body.password;
-  const firstName = req.body.firstName;
-  const lastName = req.body.lastName;
-  const email = req.body.email;
-  const user = {
-    id: uuidv4(),
-    email,
-    password,
-    firstname: firstName,
-    lastname: lastName
-  }
+  // const password = req.body.password;
+  // const firstName = req.body.firstName;
+  // const lastName = req.body.lastName;
+  // const email = req.body.email;
+  // const user = {
+  //   id: uuidv4(),
+  //   email,
+  //   password,
+  //   firstname: firstName,
+  //   lastname: lastName
+  // }
+  const user = {id: uuidv4(), ...req.body}
   users.push(user);
   res.status(201).send("Signup successful");
 }
@@ -69,7 +69,7 @@ function loginUser(req,res) {
   for(user of users) {
     if(user.email === email && user.password === password) {
       doesExist = true;
-      userDetails = {email: user.email,firstName: user.firstname, lastName: user.lastname};
+      userDetails = {email: user.email,firstName: user.firstName, lastName: user.lastName};
       break;
     }
   }
@@ -96,7 +96,7 @@ function getUsers(req,res) {
     res.status(401).send("Unauthorized");
   } else {
     console.log(userArr);
-    res.status(200).send({users: userArr6l});
+    res.status(200).send({users: userArr});
   }
 }
 
