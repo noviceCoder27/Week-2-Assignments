@@ -40,10 +40,81 @@
   Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
-const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
+
 
 const app = express();
 
-app.use(bodyParser.json());
+const todos = [];
+function getTodos(req,res) {
+  return res.status(200).send(todos);
+}
+
+function getTodo(req,res) {
+  const id = req.params.id;
+  let doesExist = false;
+  let reqdTodo;
+  for(todo of todos) {
+    if(todo.id === id) {
+      doesExist = true;
+      reqdTodo = todo;
+      break;
+    }
+  }
+  if(doesExist) {
+    res.status(200).send(reqdTodo);
+  } else {
+    res.status(404).send("Todo not found");
+  }
+}
+
+function addTodo(req,res) {
+  const id = uuidv4();
+  const todo = {
+    id,
+    title: req.body.title,
+    completed: req.body.completed,
+    description: req.body.description
+  }
+  todos.push(todo);
+  res.status(201).send(todo);
+}
+
+function updateTodo(req,res) {
+  const id = req.params.id;
+  for(todo of todos) {
+    if(todo.id === id) {
+      todo.title = req.body.title;
+      todo.description = req.body.description;
+      todo.completed =req.body.completed;
+      res.status(200).send(todo);
+    }
+  }
+
+}
+
+function deleteTodo(req,res) {
+  const id = req.params.id;
+  let getIndex;
+  for(todo of todos) {
+    if(todo.id === id) {
+      getIndex = todos.indexOf(todo);
+      break;
+    }
+  }
+
+  if(typeof getIndex !== undefined) {
+    todos.splice(getIndex,1);
+    res.status(200).send(todos);
+  }
+}
+
+app.use(express.json());
+app.get('/todos',getTodos);
+app.get('/todos/:id',getTodo);
+app.post('/todos',addTodo);
+app.put('/todos/:id',updateTodo);
+app.delete('/todos/:id',deleteTodo);
+
 
 module.exports = app;
